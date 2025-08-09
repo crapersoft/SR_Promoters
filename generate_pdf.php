@@ -19,7 +19,10 @@ $payment_id = isset($_GET['payment_id']) ? intval($_GET['payment_id']) : 0;
 // Prepare the query to fetch payment details
 $query = "
     SELECT 
-        p.*, u.*, s.*, e.*, b.*
+        p.*, u.*, s.*, e.*, b.*, p.total_amount, p.paid_amount,
+        p.total_amount AS TotalAmount,
+         p.paid_amount AS PaidAmount,
+        (p.total_amount - p.paid_amount) AS balanceAmount
     FROM 
         payment p
     JOIN 
@@ -34,7 +37,9 @@ $query = "
         p.id = ?;";
 
 // Use prepared statements to execute the query securely
-$stmt = $connection->prepare($query);
+if (!$stmt = $connection->prepare($query)) {
+    die("Query preparation failed: " . $connection->error);
+}
 $stmt->bind_param('i', $payment_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -138,7 +143,7 @@ if (!$paymentData) {
          //onst img = await loadImage(backgroundImageUrl);
         doc.addImage(backgroundImageUrl, 'JPEG', 0, 10, 210, 140); // Full width, partial height
         // Function to add one invoice copy
-        const addInvoice = (offsetY) => {
+        const addInvoice = (offsetY, isSecondInvoice = false) => {
             // Left Section: Company Name, Logo, and Customer Details
             doc.setFontSize(14);
             doc.text('SR Promoters', 10, 15 + offsetY);
@@ -197,10 +202,22 @@ if (!$paymentData) {
             });
 
             // Add Payment Summary Section
-            const totalAmount = data.totalAmountAndPenalty;
+            const totalAmount = data.TotalAmount;
             doc.setFontSize(10);
             doc.text('Total Amount: ' + totalAmount, 10, doc.lastAutoTable.finalY + 8);
 
+
+                // Add Pending Amount, Paid Amount, and Balance Amount for the second invoice
+    if (isSecondInvoice) {
+       
+        const PaidAmount= data.PaidAmount;
+        const balanceAmount= data.balanceAmount;
+        
+        doc.setFontSize(10);
+        doc.text('Paid Amount: ' + PaidAmount, 10, doc.lastAutoTable.finalY + 16);
+        doc.text('Balance Amount: ' + balanceAmount, 10, doc.lastAutoTable.finalY + 24);
+      
+    }
             // Footer Section
             doc.text('Thank you for your payment!', 105, doc.lastAutoTable.finalY + 15, null, null, 'center');
         };
@@ -214,7 +231,7 @@ if (!$paymentData) {
         doc.line(10, 155, 200, 155);
 
         // Add second invoice copy (shifted down)
-        addInvoice(160);
+        addInvoice(160, true);
 
         // Save the PDF
         doc.save('invoice.pdf');
