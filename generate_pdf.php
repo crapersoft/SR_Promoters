@@ -137,7 +137,7 @@ if (!$paymentData) {
 
         const doc = new jsPDF();
 
-          const backgroundImageUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSAjM7jL4YZ_uJT5Co-75IbOaR6sJdUS6jfiQ&s'; // <-- Replace with your own hosted background image
+          const backgroundImageUrl = 'https://img.freepik.com/free-vector/flat-ganesh-chaturthi-background_23-2149491422.jpg?semt=ais_hybrid&w=740&q=80'; // <-- Replace with your own hosted background image
 
         const invoiceNumber = 'INV-' + String(data.id).padStart(5, '0');
          //onst img = await loadImage(backgroundImageUrl);

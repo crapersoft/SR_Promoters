@@ -53,7 +53,8 @@ $sql_agents = "SELECT agent.agent_name,
                       DATE_FORMAT(payment.payment_date, '%d/%m/%Y') AS payment_date, 
                       payment.paid_amount, 
                       payment.agent_commison  ,
-                      payment.site_id
+                      payment.site_id,
+                      payment.total_amount as agent_total
                FROM payment 
                LEFT JOIN user ON user.user_id = payment.customer_id
                LEFT JOIN agent ON agent.agent_id = user.agent_id";
@@ -377,6 +378,7 @@ $agent_commissions = mysqli_fetch_all($result_agents, MYSQLI_ASSOC);
                                     <th>Site No</th>
                                     <th>Payment Date</th>
                                     <th>Commission</th>
+                                    <th>Total</th>
 
                                 </tr>
                             </thead>
@@ -389,6 +391,7 @@ $agent_commissions = mysqli_fetch_all($result_agents, MYSQLI_ASSOC);
                                      <td><?php echo htmlspecialchars($data['site_id']); ?></td>
                                      <td><?php echo htmlspecialchars($data['payment_date']); ?></td>
                                     <td><?php echo htmlspecialchars($data['agent_commison']); ?></td>
+                                    <td><?php echo htmlspecialchars($data['agent_total']); ?></td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>

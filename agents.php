@@ -307,9 +307,9 @@ $recentAgents = mysqli_num_rows($resultRecentCustomers);
                                         <th class="border-bottom-0">
                                             <h6 class="fw-semibold mb-0" style="width: 50px"> Mobile No</h6>
                                         </th>
-                                        <th class="border-bottom-0">
+                                        <!-- <th class="border-bottom-0">
                                             <h6 class="fw-semibold mb-0">Agent Email</h6>
-                                        </th>
+                                        </th> -->
                                         <th class="border-bottom-0">
                                             <h6 class="fw-semibold mb-0">Agent Address</h6>
                                         </th>
@@ -340,11 +340,11 @@ $recentAgents = mysqli_num_rows($resultRecentCustomers);
                                             <p class="fw-semibold mb-0">
                                                 <?php echo htmlspecialchars($agent['mobile_number']); ?></p>
                                         </td>
-                                        <td class="border-bottom-0">
+                                        <!-- <td class="border-bottom-0">
                                             <p class="fw-semibold mb-0">
                                                 <?php echo htmlspecialchars($agent['emil_id']); ?>
                                             </p>
-                                        </td>
+                                        </td> -->
                                         <td class="border-bottom-0">
                                             <h6 class="fw-semibold mb-0">
                                                 <?php echo htmlspecialchars($agent['agent_address']); ?></h6>

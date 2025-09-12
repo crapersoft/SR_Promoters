@@ -160,7 +160,7 @@ if ($emiId > 0) {
                             <div class="mb-3">
                                 <label for="startDate" class="form-label">EMI Start Date</label>
                                 <input type="date" class="form-control" id="startDate" name="startDate"
-                                    value="<?php echo $startDate; ?>" required>
+                                    value="<?php echo $startDate; ?>" >
                             </div>
 
                             <div class="mb-3">
@@ -296,7 +296,7 @@ if ($emiId > 0) {
     document.getElementById("agentCommission").addEventListener("input", myApp.updateAgentCommissionAmount);
 
     // Set the default start date when the page loads
-    document.addEventListener("DOMContentLoaded", myApp.setDefaultStartDate);
+//    document.addEventListener("DOMContentLoaded", myApp.setDefaultStartDate);
     </script>
 
 </body>
