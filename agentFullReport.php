@@ -101,6 +101,27 @@ $totalPercentage = 0;
 $totalPercentageAmount = 0;
 $totalBuyingPrice = 0;
 
+// Handle month/year filter for EMI commissions
+$selected_month = isset($_GET['emi_month']) ? intval($_GET['emi_month']) : null;
+$selected_year = isset($_GET['emi_year']) ? intval($_GET['emi_year']) : null;
+
+// Group emis by year and month
+$grouped_emis = [];
+foreach ($emis as $emi) {
+    $y = $emi['payment_year'];
+    $m = $emi['payment_month'];
+    if (!isset($grouped_emis[$y])) $grouped_emis[$y] = [];
+    if (!isset($grouped_emis[$y][$m])) $grouped_emis[$y][$m] = [];
+    $grouped_emis[$y][$m][] = $emi;
+}
+
+// If filter is set, show only that month, else show all months
+if ($selected_month && $selected_year) {
+    $display_emis = isset($grouped_emis[$selected_year][$selected_month]) ? [$selected_year => [$selected_month => $grouped_emis[$selected_year][$selected_month]]] : [];
+} else {
+    $display_emis = $grouped_emis;
+}
+
 // Calculate totals for the agent's bookings
 foreach ($bookings as $booking) {
     $percentage = $booking['persantage'];
@@ -228,63 +249,72 @@ if ($totalBuyingPrice > 0) {
         <?php endif; ?>
 
         <h3>EMI Commissions</h3>
-        <?php if (empty($emis)): ?>
-        <h3 class="text-center">No EMI commissions found</h3>
-        <?php else: ?>
-        <table class="table table-bordered">
-    <thead>
-        <tr>
-            <th>Customer Name</th>
-            <th>Site Name</th>
-            <th>Site No</th>
-            <th>EMI ID</th>
-            <th>Payment Month</th>
-            <th>Agent Commission</th>
-            <th>Agent Commission Amount</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php
-        // Assuming $emis is fetched from the database as an array
-        $current_month = null;
-        $current_year = null;
+            <form method="get" class="form-inline mb-3">
+                <input type="hidden" name="id" value="<?php echo htmlspecialchars($agent_id); ?>">
+                <div class="form-group mr-2">
+                    <label for="emi_month">Month:</label>
+                    <select name="emi_month" id="emi_month" class="form-control mx-2">
+                        <option value="">All</option>
+                        <?php for ($m = 1; $m <= 12; $m++): ?>
+                            <option value="<?php echo $m; ?>" <?php if ($selected_month == $m) echo 'selected'; ?>><?php echo date('F', mktime(0,0,0,$m,1)); ?></option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+                <div class="form-group mr-2">
+                    <label for="emi_year">Year:</label>
+                    <select name="emi_year" id="emi_year" class="form-control mx-2">
+                        <option value="">All</option>
+                        <?php
+                        $currentYear = date('Y');
+                        for ($y = $currentYear; $y >= $currentYear - 5; $y--): ?>
+                            <option value="<?php echo $y; ?>" <?php if ($selected_year == $y) echo 'selected'; ?>><?php echo $y; ?></option>
+                        <?php endfor; ?>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Filter</button>
+            </form>
 
-        foreach ($emis as $emi): 
-            // Get month and year from the result
-            $payment_month = $emi['payment_month'];
-            $payment_year = $emi['payment_year'];
-
-            // If the current year or month changes, add a new row for the new month
-            if ($payment_year != $current_year || $payment_month != $current_month) {
-                // Update current month and year
-                $current_month = $payment_month;
-                $current_year = $payment_year;
-        ?>
-        
-        <!-- Displaying the Month and Year once -->
-        <tr class="month-header">
-            <td colspan="7" style="background-color: #f2f2f2; font-weight: bold;">
-                <?php echo date('F Y', strtotime("$payment_year-$payment_month-01")); ?>
-            </td>
-        </tr>
-        
-        <?php } ?>
-
-        <!-- Now display the actual commission data for each row -->
-        <tr>
-            <td><?php echo $emi['userName']; ?></td>
-            <td><?php echo $emi['site_name']; ?></td>
-            <td><?php echo $emi['siteno']; ?></td>
-            <td><?php echo $emi['emi_ids']; ?></td>
-            <td><?php echo date('F Y', strtotime("$emi[payment_year]-$emi[payment_month]-01")); ?></td>
-            <td><?php echo number_format($emi['agentCommission'], 2); ?></td>
-            <td><?php echo number_format($emi['total_payment_commissions'], 2); ?></td>
-        </tr>
-
-        <?php endforeach; ?>
-    </tbody>
-</table>
-        <?php endif; ?>
+            <?php if (empty($display_emis)): ?>
+                <h3 class="text-center">No EMI commissions found.</h3>
+            <?php else: ?>
+                <?php foreach ($display_emis as $year => $months): ?>
+                    <?php foreach ($months as $month => $emis_in_month): ?>
+                        <h5 class="mt-4 mb-2">EMI Commissions for <?php echo date('F Y', strtotime("$year-$month-01")); ?></h5>
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Customer Name</th>
+                                    <th>Site Name</th>
+                                    <th>Site No</th>
+                                    <th>EMI ID</th>
+                                    <th>Payment Month</th>
+                                    <th>Agent Commission</th>
+                                    <th>Agent Commission Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $month_total = 0; ?>
+                                <?php foreach ($emis_in_month as $emi): ?>
+                                    <tr>
+                                        <td><?php echo $emi['userName']; ?></td>
+                                        <td><?php echo $emi['site_name']; ?></td>
+                                        <td><?php echo $emi['siteno']; ?></td>
+                                        <td><?php echo $emi['emi_ids']; ?></td>
+                                        <td><?php echo date('F Y', strtotime("{$emi['payment_year']}-{$emi['payment_month']}-01")); ?></td>
+                                        <td><?php echo number_format($emi['agentCommission'], 2); ?></td>
+                                        <td><?php echo number_format($emi['total_payment_commissions'], 2); ?></td>
+                                    </tr>
+                                    <?php $month_total += (float)$emi['total_payment_commissions']; ?>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                        <div class="text-right mb-3">
+                            <strong>Total EMI Commission for <?php echo date('F Y', strtotime("$year-$month-01")); ?>:</strong>
+                            <span class="badge badge-success">₹<?php echo number_format($month_total, 2); ?></span>
+                        </div>
+                    <?php endforeach; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
     </div>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
