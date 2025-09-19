@@ -396,6 +396,16 @@ $agent_commissions = mysqli_fetch_all($result_agents, MYSQLI_ASSOC);
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
+                                                <?php
+                                                // Calculate the sum of agent_total
+                                                $totalCommission = 0;
+                                                foreach ($agent_commissions as $data) {
+                                                    $totalCommission += (float)$data['agent_total'];
+                                                }
+                                                ?>
+                                                <div class="mt-2 mb-4">
+                                                    <h5 class="text-end">Total Commission: <span class="badge bg-success">₹<?php echo number_format($totalCommission, 2); ?></span></h5>
+                                                </div>
                     </div>
                 </div>
             </div>

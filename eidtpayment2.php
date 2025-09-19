@@ -298,7 +298,7 @@ if ($emiPaymentId > 0) {
 
     // Set current date on load
     document.addEventListener("DOMContentLoaded", () => {
-        myApp.setCurrentDate();
+        //myApp.setCurrentDate();
     });
 
     // Listen to input changes on amount and penalty to calculate the total
