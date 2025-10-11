@@ -62,7 +62,6 @@ $query_emis = "
         e.emi_ids,
         e.booking_id,
         e.agentCommission,
-        e.total_payment_commissions,
         b.customer_id,
         b.site_id,
         b.siteno,
@@ -70,7 +69,9 @@ $query_emis = "
         s.site_name,
         p.payment_date,
         MONTH(p.payment_date) AS payment_month,
-        YEAR(p.payment_date) AS payment_year
+        YEAR(p.payment_date) AS payment_year,
+        p.agent_commison AS agent_commission_percent,
+        p.total_amount AS agent_commission_amount
     FROM 
         emis e
     LEFT JOIN 
@@ -288,7 +289,7 @@ if ($totalBuyingPrice > 0) {
                                     <th>Site No</th>
                                     <th>EMI ID</th>
                                     <th>Payment Month</th>
-                                    <th>Agent Commission</th>
+                                    <th>Agent Commission (%)</th>
                                     <th>Agent Commission Amount</th>
                                 </tr>
                             </thead>
@@ -301,10 +302,10 @@ if ($totalBuyingPrice > 0) {
                                         <td><?php echo $emi['siteno']; ?></td>
                                         <td><?php echo $emi['emi_ids']; ?></td>
                                         <td><?php echo date('F Y', strtotime("{$emi['payment_year']}-{$emi['payment_month']}-01")); ?></td>
-                                        <td><?php echo number_format($emi['agentCommission'], 2); ?></td>
-                                        <td><?php echo number_format($emi['total_payment_commissions'], 2); ?></td>
+                                        <td><?php echo number_format((float)($emi['agent_commission_percent'] ?? 0), 2); ?></td>
+                                        <td><?php echo number_format((float)($emi['agent_commission_amount'] ?? 0), 2); ?></td>
                                     </tr>
-                                    <?php $month_total += (float)$emi['total_payment_commissions']; ?>
+                                    <?php $month_total += (float)($emi['agent_commission_amount'] ?? 0); ?>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>

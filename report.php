@@ -49,12 +49,10 @@ $bookings = mysqli_num_rows($result_bookings) > 0 ? mysqli_fetch_all($result_boo
 $from_date = isset($_GET['from_date']) ? $_GET['from_date'] : '';
 $to_date = isset($_GET['to_date']) ? $_GET['to_date'] : '';
 
-$sql_agents = "SELECT agent.agent_name, 
-                      DATE_FORMAT(payment.payment_date, '%d/%m/%Y') AS payment_date, 
-                      payment.paid_amount, 
-                      payment.agent_commison  ,
-                      payment.site_id,
-                      payment.total_amount as agent_total
+$sql_agents = "SELECT 
+                      agent.agent_id,
+                      agent.agent_name,
+                      SUM(payment.total_amount) AS agent_total
                FROM payment 
                LEFT JOIN user ON user.user_id = payment.customer_id
                LEFT JOIN agent ON agent.agent_id = user.agent_id";
@@ -62,7 +60,8 @@ $sql_agents = "SELECT agent.agent_name,
 if (!empty($from_date) && !empty($to_date)) {
     $sql_agents .= " WHERE payment.payment_date BETWEEN '$from_date' AND '$to_date'";
 }
-$sql_agents .= " ORDER BY payment.payment_date DESC";
+
+$sql_agents .= " GROUP BY agent.agent_id, agent.agent_name ORDER BY agent_total DESC";
 
 $result_agents = mysqli_query($connection, $sql_agents);
 
@@ -375,10 +374,7 @@ $agent_commissions = mysqli_fetch_all($result_agents, MYSQLI_ASSOC);
                                 <tr>
                                     <th>S.No</th>
                                     <th>Agent name</th>
-                                    <th>Site No</th>
-                                    <th>Payment Date</th>
-                                    <th>Commission</th>
-                                    <th>Total</th>
+                                    <th>Total Commission</th>
 
                                 </tr>
                             </thead>
@@ -388,24 +384,21 @@ $agent_commissions = mysqli_fetch_all($result_agents, MYSQLI_ASSOC);
                                 <tr>
                                     <td><?php echo $sno++; ?></td>
                                     <td><?php echo htmlspecialchars($data['agent_name']); ?></td>
-                                     <td><?php echo htmlspecialchars($data['site_id']); ?></td>
-                                     <td><?php echo htmlspecialchars($data['payment_date']); ?></td>
-                                    <td><?php echo htmlspecialchars($data['agent_commison']); ?></td>
-                                    <td><?php echo htmlspecialchars($data['agent_total']); ?></td>
+                                    <td><?php echo number_format((float)($data['agent_total'] ?? 0), 2); ?></td>
                                 </tr>
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
-                                                <?php
-                                                // Calculate the sum of agent_total
-                                                $totalCommission = 0;
-                                                foreach ($agent_commissions as $data) {
-                                                    $totalCommission += (float)$data['agent_total'];
-                                                }
-                                                ?>
-                                                <div class="mt-2 mb-4">
-                                                    <h5 class="text-end">Total Commission: <span class="badge bg-success">₹<?php echo number_format($totalCommission, 2); ?></span></h5>
-                                                </div>
+                        <?php
+                        // Calculate the grand total across agents for the selected date range (if any)
+                        $totalCommission = 0;
+                        foreach ($agent_commissions as $data) {
+                            $totalCommission += (float)($data['agent_total'] ?? 0);
+                        }
+                        ?>
+                        <div class="mt-2 mb-4">
+                            <h5 class="text-end">Grand Total Commission: <span class="badge bg-success">₹<?php echo number_format($totalCommission, 2); ?></span></h5>
+                        </div>
                     </div>
                 </div>
             </div>
